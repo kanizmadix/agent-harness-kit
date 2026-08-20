@@ -1,26 +1,51 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-harness-kit"
 version = "0.1.0"
-description = "A portable agent harness and supervisor orchestration loop for LangGraph, CrewAI, AWS Bedrock AgentCore/Strands, and raw LLM backends."
+description = "A portable agent harness and supervisor orchestration loop for raw LLM backends and multi-agent frameworks."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Kanishk S" },
+]
+keywords = [
+    "agents",
+    "ai",
+    "multi-agent",
+    "orchestration",
+    "supervisor",
+    "llm",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 # Hard dependencies: stdlib only. Everything framework/SDK-specific is an
 # optional extra, lazy-imported by the backend that needs it.
 dependencies = []
 
 [project.optional-dependencies]
 anthropic = ["anthropic>=0.40.0"]
+openai = ["openai>=1.45.0"]
 langgraph = ["langgraph>=0.2.0"]
 crewai = ["crewai>=0.80.0"]
 strands = ["strands-agents>=0.1.0"]
 # Convenience bundle pulling in every optional backend's SDK.
 all = [
     "anthropic>=0.40.0",
+    "openai>=1.45.0",
     "langgraph>=0.2.0",
     "crewai>=0.80.0",
     "strands-agents>=0.1.0",
@@ -28,6 +53,12 @@ all = [
 dev = [
     "pytest>=8.0.0",
 ]
+
+[project.urls]
+Homepage = "https://kanizmadix.github.io/agent-harness-kit/"
+Documentation = "https://kanizmadix.github.io/agent-harness-kit/"
+Source = "https://github.com/kanizmadix/agent-harness-kit"
+Issues = "https://github.com/kanizmadix/agent-harness-kit/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

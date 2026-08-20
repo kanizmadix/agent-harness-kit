@@ -159,22 +159,37 @@ whichever of those you're already using.
 
 ## Install
 
-```bash
-pip install -e ".[dev]"
-```
-
-Framework-specific extras (each pulls in exactly the one SDK you need):
+Install the zero-dependency core package from PyPI:
 
 ```bash
-pip install -e ".[anthropic]"   # ClaudeBackend
-pip install -e ".[langgraph]"   # LangGraphBackend
-pip install -e ".[crewai]"      # CrewAIBackend
-pip install -e ".[strands]"     # StrandsBackend
-pip install -e ".[all]"         # every optional backend's SDK
+python -m pip install agent-harness-kit
 ```
 
-The base install (`pip install -e .`, no extras) has **zero** third-party
-dependencies — only the Python standard library.
+Framework-specific extras pull in only the SDK you need:
+
+```bash
+python -m pip install "agent-harness-kit[anthropic]"   # ClaudeBackend
+python -m pip install "agent-harness-kit[openai]"      # OpenAIBackend
+python -m pip install "agent-harness-kit[langgraph]"   # LangGraphBackend
+python -m pip install "agent-harness-kit[crewai]"      # CrewAIBackend
+python -m pip install "agent-harness-kit[strands]"     # StrandsBackend
+python -m pip install "agent-harness-kit[all]"         # every optional backend SDK
+```
+
+`ClaudeBackend` and `OpenAIBackend` are complete reference implementations.
+The LangGraph, CrewAI, and Strands adapters currently provide constructor and
+integration templates whose `run_step` methods must be completed for your
+framework objects; installing their extras supplies the corresponding SDKs.
+
+The base install has **zero third-party runtime dependencies**—only the
+Python standard library. API credentials are never bundled; provide the key
+required by the backend you choose through its SDK or environment variable.
+
+For local development from a clone:
+
+```bash
+python -m pip install -e ".[dev]"
+```
 
 ## Tests
 

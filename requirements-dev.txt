@@ -1,6 +1,6 @@
 # Dev/test dependencies only. The library itself has zero hard dependencies
 # (stdlib only) — see pyproject.toml [project.optional-dependencies] for the
-# framework-specific extras (anthropic, langgraph, crewai, strands).
+# framework-specific extras (anthropic, openai, langgraph, crewai, strands).
 #
 # Install the package in editable mode plus these with either:
 #   pip install -e ".[dev]"

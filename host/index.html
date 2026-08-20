@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="agent-harness-kit is a portable Python supervisor and orchestration loop for AI agents.">
+  <title>agent-harness-kit — Portable multi-agent orchestration</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#top" aria-label="agent-harness-kit home">agent-harness-kit</a>
+    <nav aria-label="Primary navigation">
+      <a href="#install">Install</a>
+      <a href="#backends">Backends</a>
+      <a href="https://github.com/kanizmadix/agent-harness-kit">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <p class="eyebrow">Portable Python agent infrastructure</p>
+      <h1>One orchestration loop.<br><span>Any agent backend.</span></h1>
+      <p class="lede">A lightweight supervisor, shared context, pluggable memory, and a consistent backend protocol for building multi-agent systems without locking orchestration to one model provider.</p>
+      <div class="actions">
+        <a class="button primary" href="#install">Install from PyPI</a>
+        <a class="button secondary" href="https://github.com/kanizmadix/agent-harness-kit">View source</a>
+      </div>
+      <div class="install" id="install">
+        <code>python -m pip install agent-harness-kit</code>
+        <button type="button" data-copy="python -m pip install agent-harness-kit" aria-label="Copy installation command">Copy</button>
+      </div>
+      <p class="requirement">Python 3.10+ · MIT licensed · zero core runtime dependencies</p>
+    </section>
+
+    <section class="features" aria-label="Package features">
+      <article>
+        <p class="number">01</p>
+        <h2>Supervisor loop</h2>
+        <p>Route work between registered agents until completion while preserving a predictable execution boundary.</p>
+      </article>
+      <article>
+        <p class="number">02</p>
+        <h2>Shared context</h2>
+        <p>Carry messages, artifacts, scratch data, and tool state across every step with serializable context objects.</p>
+      </article>
+      <article>
+        <p class="number">03</p>
+        <h2>Pluggable memory</h2>
+        <p>Start in memory, persist to SQLite, or implement the small memory protocol for your own infrastructure.</p>
+      </article>
+    </section>
+
+    <section class="backends" id="backends">
+      <div>
+        <p class="eyebrow">Bring your own model or framework</p>
+        <h2>Install only what you use.</h2>
+        <p class="section-copy">OpenAI and Anthropic are ready-to-run reference backends. Framework adapters are explicit templates for connecting your own graph, crew, or Strands agent.</p>
+      </div>
+      <div class="backend-grid">
+        <div><code>agent-harness-kit[anthropic]</code><small>Ready · Claude backend</small></div>
+        <div><code>agent-harness-kit[openai]</code><small>Ready · OpenAI backend</small></div>
+        <div><code>agent-harness-kit[langgraph]</code><small>Adapter template · complete run_step for your graph</small></div>
+        <div><code>agent-harness-kit[crewai]</code><small>Adapter template · complete run_step for your crew</small></div>
+        <div><code>agent-harness-kit[strands]</code><small>Adapter template · complete run_step for your agent</small></div>
+        <div><code>agent-harness-kit[all]</code><small>All optional SDKs, including adapter templates</small></div>
+      </div>
+    </section>
+
+    <section class="quickstart">
+      <p class="eyebrow">Runnable OpenAI example</p>
+      <h2>Build around one backend protocol.</h2>
+      <pre><code>from agent_harness_kit import HarnessLoop, InMemoryProvider, OpenAIBackend
+
+supervisor = OpenAIBackend(
+    model="gpt-4o-mini",
+    is_supervisor=True,
+    agent_names=["writer"],
+)
+writer = OpenAIBackend(
+    model="gpt-4o-mini",
+    system_prompt="Write a concise answer to the user's request.",
+)
+
+loop = HarnessLoop(
+    memory=InMemoryProvider(),
+    supervisor=supervisor,
+    agents={"writer": writer},
+)
+result = loop.run_supervised(
+    objective="Explain portable agent orchestration",
+    input="Give me a two-sentence overview.",
+    session_id="demo",
+)</code></pre>
+      <p class="requirement">Install <code>agent-harness-kit[openai]</code> and set <code>OPENAI_API_KEY</code> before running.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Built by <a href="https://github.com/kanizmadix">Kanishk S</a>.</p>
+    <div><a href="https://github.com/kanizmadix/agent-harness-kit">Repository</a><a href="https://github.com/kanizmadix/agent-harness-kit/issues">Issues</a><a href="https://pypi.org/project/agent-harness-kit/">PyPI</a></div>
+  </footer>
+
+  <script>
+    const button = document.querySelector('[data-copy]');
+    button.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(button.dataset.copy);
+      button.textContent = 'Copied';
+      window.setTimeout(() => { button.textContent = 'Copy'; }, 1600);
+    });
+  </script>
+</body>
+</html>
