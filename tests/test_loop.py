@@ -60,14 +60,19 @@ def test_supervisor_dispatches_to_agent_registered_after_construction(scripted_b
     assert context.messages[-1] == {"role": "assistant", "content": "done"}
 
 
-def test_unregistered_agent_raises_keyerror(scripted_backend):
+def test_unregistered_agent_returns_failed_context(scripted_backend):
     supervisor = scripted_backend(
         steps=[StepResult(status="continue", next_agent="ghost", payload=None)]
     )
     loop = HarnessLoop(memory=InMemoryProvider(), supervisor=supervisor)
 
-    with pytest.raises(KeyError):
-        loop.run_supervised("objective", "input", "s1")
+    context = loop.run_supervised("objective", "input", "s1")
+
+    assert context.scratchpad["status"] == "failed"
+    assert context.scratchpad["failed_step"] == "ghost"
+    assert context.scratchpad["errors"][0]["step"] == "ghost"
+    assert context.scratchpad["errors"][0]["attempt"] == 1
+    assert "KeyError" in context.scratchpad["errors"][0]["error"]
 
 
 def test_continue_without_next_agent_raises_valueerror(scripted_backend):

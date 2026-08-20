@@ -1,12 +1,13 @@
-"""Tests for the backend lazy-import contract and the Claude backend.
+"""Tests for backend imports and the Claude, OpenAI, and Strands adapters.
 
 These tests must pass whether or not langgraph/crewai/strands-agents are
 installed: the whole point of the lazy-import design is that importing the
 adapter modules never requires the framework, and constructing the adapter
 only fails (with a clear ImportError) when the framework really is missing.
 
-The Claude backend test injects a fake ``client`` object so no real network
-call or ``anthropic`` package is required.
+Claude and OpenAI tests inject fake ``client`` objects so no real network call
+or provider SDK is required. The Strands construction test injects a minimal
+module stub to exercise its successful lazy-import path deterministically.
 """
 
 from __future__ import annotations
@@ -168,6 +169,182 @@ def test_claude_backend_supervisor_invalid_json_becomes_error_status():
 
     fake_client = _FakeAnthropicClient(_FakeMessage(content=[_FakeTextBlock(text="not json at all")]))
     backend = ClaudeBackend(client=fake_client, is_supervisor=True)
+
+    context = HarnessContext(session_id="s1")
+    context.add_message("user", "start")
+
+    result = backend.run_step(context)
+
+    assert result.status == "error"
+    assert "not json at all" in result.message
+
+
+# --- StrandsBackend construction (in addition to the generic stub-backend
+# parametrized tests above, which already cover its lazy-import contract) ---
+
+
+def test_strands_backend_stores_agent_when_package_present(monkeypatch):
+    """Simulate 'strands' being importable (via sys.modules) without requiring
+    the real package, and confirm the agent object is stored as-is."""
+    import sys
+    import types
+
+    from agent_harness_kit.backends.strands_backend import StrandsBackend
+
+    monkeypatch.setitem(sys.modules, "strands", types.ModuleType("strands"))
+
+    fake_agent = object()
+    backend = StrandsBackend(agent=fake_agent)
+
+    assert backend.agent is fake_agent
+    with pytest.raises(NotImplementedError):
+        backend.run_step(HarnessContext(session_id="s1"))
+
+
+# --- OpenAIBackend, using a fake client (no network, no `openai` package) ---
+
+
+@dataclass
+class _FakeOAIFunctionCall:
+    name: str
+    arguments: str  # JSON-encoded, matching the real openai SDK's shape
+
+
+@dataclass
+class _FakeOAIToolCall:
+    function: _FakeOAIFunctionCall
+
+
+@dataclass
+class _FakeOAIMessage:
+    content: str | None
+    tool_calls: list[Any] | None = None
+
+
+@dataclass
+class _FakeOAIChoice:
+    message: _FakeOAIMessage
+
+
+@dataclass
+class _FakeOAICompletion:
+    choices: list[_FakeOAIChoice]
+
+
+class _FakeCompletionsResource:
+    def __init__(self, response: _FakeOAICompletion):
+        self._response = response
+        self.calls: list[dict] = []
+
+    def create(self, **kwargs):
+        self.calls.append(kwargs)
+        return self._response
+
+
+class _FakeChatResource:
+    def __init__(self, response: _FakeOAICompletion):
+        self.completions = _FakeCompletionsResource(response)
+
+
+class _FakeOpenAIClient:
+    def __init__(self, response: _FakeOAICompletion):
+        self.chat = _FakeChatResource(response)
+
+
+def test_openai_backend_construction_stores_config_with_injected_client():
+    """Passing client= skips the lazy 'import openai' entirely — no network
+    call and no openai package required, mirroring ClaudeBackend's client=
+    injection point."""
+    from agent_harness_kit.backends.openai_backend import OpenAIBackend
+
+    fake_client = _FakeOpenAIClient(_FakeOAICompletion(choices=[]))
+
+    backend = OpenAIBackend(
+        model="gpt-4o-mini",
+        system_prompt="be terse",
+        is_supervisor=True,
+        agent_names=["worker"],
+        max_tokens=256,
+        client=fake_client,
+    )
+
+    assert backend.model == "gpt-4o-mini"
+    assert backend.system_prompt == "be terse"
+    assert backend.is_supervisor is True
+    assert backend.agent_names == ["worker"]
+    assert backend.max_tokens == 256
+    assert backend._client is fake_client
+
+
+def test_openai_backend_plain_agent_returns_text_as_done():
+    from agent_harness_kit.backends.openai_backend import OpenAIBackend
+
+    fake_client = _FakeOpenAIClient(
+        _FakeOAICompletion(choices=[_FakeOAIChoice(message=_FakeOAIMessage(content="hello there"))])
+    )
+    backend = OpenAIBackend(client=fake_client)
+
+    context = HarnessContext(session_id="s1")
+    context.add_message("user", "hi")
+
+    result = backend.run_step(context)
+
+    assert result.status == "done"
+    assert result.payload == "hello there"
+    assert result.message == "hello there"
+    assert fake_client.chat.completions.calls[0]["messages"][-1] == {"role": "user", "content": "hi"}
+
+
+def test_openai_backend_supervisor_parses_json_routing_decision():
+    from agent_harness_kit.backends.openai_backend import OpenAIBackend
+
+    decision_json = '{"status": "continue", "next_agent": "worker", "payload": "go do it"}'
+    fake_client = _FakeOpenAIClient(
+        _FakeOAICompletion(choices=[_FakeOAIChoice(message=_FakeOAIMessage(content=decision_json))])
+    )
+    backend = OpenAIBackend(client=fake_client, is_supervisor=True, agent_names=["worker"])
+
+    context = HarnessContext(session_id="s1")
+    context.add_message("user", "start")
+
+    result = backend.run_step(context)
+
+    assert result.status == "continue"
+    assert result.next_agent == "worker"
+    assert result.payload == "go do it"
+
+
+def test_openai_backend_supervisor_parses_tool_call_routing_decision():
+    from agent_harness_kit.backends.openai_backend import OpenAIBackend
+
+    tool_call = _FakeOAIToolCall(
+        function=_FakeOAIFunctionCall(
+            name="route", arguments='{"status": "done", "message": "all finished"}'
+        )
+    )
+    fake_client = _FakeOpenAIClient(
+        _FakeOAICompletion(
+            choices=[_FakeOAIChoice(message=_FakeOAIMessage(content=None, tool_calls=[tool_call]))]
+        )
+    )
+    backend = OpenAIBackend(client=fake_client, is_supervisor=True)
+
+    context = HarnessContext(session_id="s1")
+    context.add_message("user", "start")
+
+    result = backend.run_step(context)
+
+    assert result.status == "done"
+    assert result.message == "all finished"
+
+
+def test_openai_backend_supervisor_invalid_json_becomes_error_status():
+    from agent_harness_kit.backends.openai_backend import OpenAIBackend
+
+    fake_client = _FakeOpenAIClient(
+        _FakeOAICompletion(choices=[_FakeOAIChoice(message=_FakeOAIMessage(content="not json at all"))])
+    )
+    backend = OpenAIBackend(client=fake_client, is_supervisor=True)
 
     context = HarnessContext(session_id="s1")
     context.add_message("user", "start")
