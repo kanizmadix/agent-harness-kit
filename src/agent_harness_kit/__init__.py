@@ -1,24 +1,12 @@
-"""agent_harness_kit — a portable orchestration loop + supervisor pattern.
+"""A portable orchestration loop and supervisor pattern.
 
-This top-level import is intentionally cheap: it only pulls in ``core`` and
-``backends.base``, neither of which depend on any third-party package. It
-does NOT import ``backends.claude_backend``, ``backends.langgraph_backend``,
-or ``backends.crewai_backend`` — those are optional and framework-specific,
-and are meant to be imported explicitly by whoever actually wants to use
-them, e.g.::
+The top-level package exports the zero-dependency core contracts plus
+``OpenAIBackend`` and ``StrandsBackend``. Their modules are safe to import:
+optional SDKs are loaded lazily only when a backend is constructed. Claude,
+LangGraph, and CrewAI backends remain explicit submodule imports.
 
-    from agent_harness_kit.backends.claude_backend import ClaudeBackend
-
-``StrandsBackend`` and ``OpenAIBackend`` ARE exported below, at the caller's
-request, alongside the other top-level names. This is safe for the same
-reason ``ClaudeBackend`` importing cleanly is safe: both only import their
-underlying SDK (``strands`` / ``openai``) lazily, inside ``__init__``, so
-importing the module here never requires either package to be installed —
-only constructing a backend instance without the package (and without
-passing your own ``client=``) does.
-
-This means ``import agent_harness_kit`` always succeeds, with or without
-``anthropic``/``langgraph``/``crewai``/``strands-agents``/``openai`` installed.
+As a result, ``import agent_harness_kit`` succeeds whether or not any optional
+provider or framework SDK is installed.
 """
 
 from agent_harness_kit.backends.base import AgentBackend, StepResult
@@ -40,4 +28,4 @@ __all__ = [
     "OpenAIBackend",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

@@ -3,14 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="agent-harness-kit is a portable Python supervisor and orchestration loop for AI agents.">
+  <meta name="description" content="A working browser demo of agent-harness-kit: a tiny provider-neutral supervisor shell with shared context and pluggable memory.">
   <title>agent-harness-kit — Portable multi-agent orchestration</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#demo">Skip to interactive demo</a>
   <header class="nav">
-    <a class="brand" href="#top" aria-label="agent-harness-kit home">agent-harness-kit</a>
+    <a class="brand" href="#top" aria-label="agent-harness-kit home"><span aria-hidden="true">◆</span> agent-harness-kit</a>
     <nav aria-label="Primary navigation">
+      <a href="#demo">Demo</a>
       <a href="#install">Install</a>
       <a href="#backends">Backends</a>
       <a href="https://github.com/kanizmadix/agent-harness-kit">GitHub</a>
@@ -19,51 +22,191 @@
 
   <main id="top">
     <section class="hero">
-      <p class="eyebrow">Portable Python agent infrastructure</p>
-      <h1>One orchestration loop.<br><span>Any agent backend.</span></h1>
-      <p class="lede">A lightweight supervisor, shared context, pluggable memory, and a consistent backend protocol for building multi-agent systems without locking orchestration to one model provider.</p>
-      <div class="actions">
-        <a class="button primary" href="#install">Install from PyPI</a>
-        <a class="button secondary" href="https://github.com/kanizmadix/agent-harness-kit">View source</a>
+      <div class="hero-copy">
+        <p class="eyebrow">Portable Python agent infrastructure</p>
+        <h1>One small harness.<br><span>Mixed agent stacks.</span></h1>
+        <p class="lede">A zero-core-dependency protocol, serializable shared context, pluggable memory, and supervisor shell for coordinating agents without making one provider or framework your application boundary.</p>
+        <div class="actions">
+          <a class="button primary" href="#demo">Run the demo</a>
+          <a class="button secondary" href="https://github.com/kanizmadix/agent-harness-kit">View source</a>
+        </div>
+        <div class="install" id="install">
+          <code>python -m pip install agent-harness-kit</code>
+          <button type="button" data-copy="python -m pip install agent-harness-kit" aria-label="Copy installation command">Copy</button>
+        </div>
+        <p class="requirement">Python 3.10+ · MIT licensed · zero third-party core runtime dependencies</p>
       </div>
-      <div class="install" id="install">
-        <code>python -m pip install agent-harness-kit</code>
-        <button type="button" data-copy="python -m pip install agent-harness-kit" aria-label="Copy installation command">Copy</button>
+      <aside class="scope-card" aria-label="Project scope">
+        <p class="status-dot"><span></span> v0.1.1 candidate</p>
+        <h2>Deliberately small.</h2>
+        <ul>
+          <li><code>AgentBackend</code> protocol</li>
+          <li>JSON-serializable context</li>
+          <li>In-memory or SQLite memory</li>
+          <li>Deterministic supervisor loop</li>
+        </ul>
+        <p>Not a graph runtime, tracing suite, guardrail system, tool ecosystem, or deployment platform.</p>
+      </aside>
+    </section>
+
+    <section class="positioning" id="why" aria-labelledby="why-title">
+      <div class="positioning-intro">
+        <p class="eyebrow">Why use agent-harness-kit?</p>
+        <h2 id="why-title">Keep your agents.<br><span>Own the boundary.</span></h2>
+        <blockquote>One small, provider-neutral supervisor, context, and memory contract around agents you already have—without forcing the entire application into one vendor or framework.</blockquote>
+        <div class="fit-grid" aria-label="Best-fit use cases">
+          <p>Mixed providers and agent implementations</p>
+          <p>Stable backend protocol for libraries</p>
+          <p>Serializable context without framework takeover</p>
+          <p>Small systems where a full runtime is excessive</p>
+          <p>Incremental framework migration</p>
+        </div>
       </div>
-      <p class="requirement">Python 3.10+ · MIT licensed · zero core runtime dependencies</p>
+
+      <div class="comparison-wrap" tabindex="0" aria-label="Agent framework scope comparison">
+        <table class="comparison-table">
+          <thead><tr><th>Alternative</th><th>Stronger when you need</th><th>Why use this harness instead</th></tr></thead>
+          <tbody>
+            <tr><th><a href="https://docs.langchain.com/oss/python/langgraph/overview">LangGraph</a></th><td>Durable graph execution, checkpoints, streaming, and human intervention.</td><td>A much smaller shell without adopting a graph runtime.</td></tr>
+            <tr><th><a href="https://docs.crewai.com/en/introduction">CrewAI</a></th><td>Role-based crews, tasks, and structured flows.</td><td>Keep existing agents; add consistent supervision and shared state.</td></tr>
+            <tr><th><a href="https://openai.github.io/openai-agents-python/">OpenAI Agents SDK</a></th><td>Tools, handoffs, guardrails, sessions, and tracing.</td><td>Provider-neutral orchestration across OpenAI, Anthropic, and custom agents.</td></tr>
+            <tr><th><a href="https://learn.microsoft.com/en-us/agent-framework/overview/agent-framework-overview">Microsoft Agent Framework</a></th><td>Enterprise workflows, middleware, MCP, and hosted integrations.</td><td>An embeddable Python protocol rather than a complete platform.</td></tr>
+            <tr><th><a href="https://google.github.io/adk-docs/">Google ADK</a></th><td>Tooling, evaluations, multi-agent workflows, and deployment support.</td><td>Minimal dependencies and infrastructure-neutral agent boundaries.</td></tr>
+          </tbody>
+        </table>
+        <p class="comparison-note"><strong>Deliberate non-goals:</strong> this package does not replace durable execution, tracing, guardrails, evaluations, tool ecosystems, or deployment platforms. Comparison text is paraphrased from the linked official documentation.</p>
+      </div>
+    </section>
+
+    <section class="demo-section" id="demo" aria-labelledby="demo-title">
+      <p id="demo-announcer" class="sr-only" aria-live="polite"></p>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Interactive architecture</p>
+          <h2 id="demo-title">Watch context move, step by step.</h2>
+        </div>
+        <p>This is <strong>demo mode</strong>: a deterministic browser-only simulation. It makes no API calls, uses no credentials, and sends no data anywhere.</p>
+      </div>
+
+      <div class="demo-shell" data-demo-state="idle">
+        <div class="demo-toolbar">
+          <label for="objective">Sample objective</label>
+          <select id="objective" name="objective">
+            <option value="launch">Plan a privacy-first product launch</option>
+            <option value="brief">Draft an AI adoption executive brief</option>
+            <option value="incident">Create a service incident update</option>
+          </select>
+          <div class="demo-actions" aria-label="Demo controls">
+            <button class="button primary" id="start-demo" type="button">Start</button>
+            <button class="button secondary" id="pause-demo" type="button" disabled>Pause</button>
+            <button class="button ghost" id="reset-demo" type="button">Reset</button>
+          </div>
+          <p class="demo-mode"><span aria-hidden="true"></span> Demo mode · local simulation</p>
+        </div>
+
+        <div class="demo-workspace">
+          <div class="architecture-panel">
+            <div class="run-meta">
+              <span id="run-state" class="state-pill">Ready</span>
+              <span>Step <strong id="step-count">0</strong> / 7</span>
+            </div>
+            <div class="architecture" aria-label="Supervisor routes work to Researcher, Analyst, and Writer, which update shared context and memory">
+              <svg id="flow-svg" viewBox="0 0 640 440" role="img" aria-labelledby="flow-title flow-desc">
+                <title id="flow-title">Agent harness execution architecture</title>
+                <desc id="flow-desc">Animated paths run from a supervisor to three specialist agents and then into shared context and memory.</desc>
+                <defs>
+                  <linearGradient id="route-gradient" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#61dafb"/>
+                    <stop offset="1" stop-color="#a78bfa"/>
+                  </linearGradient>
+                  <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+                <g class="routes" fill="none">
+                  <path id="route-researcher" d="M320 86 C280 130 170 132 110 198"/>
+                  <path id="route-analyst" d="M320 86 L320 198"/>
+                  <path id="route-writer" d="M320 86 C360 130 470 132 530 198"/>
+                  <path id="route-researcher-memory" d="M110 262 C160 322 250 316 320 362"/>
+                  <path id="route-analyst-memory" d="M320 262 L320 362"/>
+                  <path id="route-writer-memory" d="M530 262 C480 322 390 316 320 362"/>
+                </g>
+                <g class="pulse-dots" filter="url(#glow)" aria-hidden="true">
+                  <circle class="pulse-to-researcher" r="5"><animateMotion dur="2s" repeatCount="indefinite" path="M320 86 C280 130 170 132 110 198"/></circle>
+                  <circle class="pulse-to-analyst" r="5"><animateMotion dur="2.2s" repeatCount="indefinite" path="M320 86 L320 198"/></circle>
+                  <circle class="pulse-to-writer" r="5"><animateMotion dur="2.4s" repeatCount="indefinite" path="M320 86 C360 130 470 132 530 198"/></circle>
+                  <circle class="pulse-researcher-memory" r="5"><animateMotion dur="2s" repeatCount="indefinite" path="M110 262 C160 322 250 316 320 362"/></circle>
+                  <circle class="pulse-analyst-memory" r="5"><animateMotion dur="2.2s" repeatCount="indefinite" path="M320 262 L320 362"/></circle>
+                  <circle class="pulse-writer-memory" r="5"><animateMotion dur="2.4s" repeatCount="indefinite" path="M530 262 C480 322 390 316 320 362"/></circle>
+                </g>
+              </svg>
+              <div class="agent-node supervisor" id="node-supervisor" data-status="idle">
+                <span class="node-icon" aria-hidden="true">S</span>
+                <strong>Supervisor</strong>
+                <small data-agent-status>idle</small>
+              </div>
+              <div class="agent-node researcher" id="node-researcher" data-status="idle">
+                <span class="node-icon" aria-hidden="true">R</span>
+                <strong>Researcher</strong>
+                <small data-agent-status>idle</small>
+              </div>
+              <div class="agent-node analyst" id="node-analyst" data-status="idle">
+                <span class="node-icon" aria-hidden="true">A</span>
+                <strong>Analyst</strong>
+                <small data-agent-status>idle</small>
+              </div>
+              <div class="agent-node writer" id="node-writer" data-status="idle">
+                <span class="node-icon" aria-hidden="true">W</span>
+                <strong>Writer</strong>
+                <small data-agent-status>idle</small>
+              </div>
+              <div class="agent-node memory" id="node-memory" data-status="idle">
+                <span class="node-icon" aria-hidden="true">{ }</span>
+                <strong>Shared Context / Memory</strong>
+                <small data-agent-status>waiting</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="telemetry" aria-label="Live demo telemetry">
+            <div class="tab-heading">
+              <h3>Shared context</h3>
+              <span>JSON</span>
+            </div>
+            <pre id="context-json" tabindex="0" aria-label="Current shared context JSON"></pre>
+            <div class="tab-heading log-heading">
+              <h3>Event log</h3>
+              <span aria-live="polite" id="event-count">0 events</span>
+            </div>
+            <ol class="event-log" id="event-log" aria-live="polite" aria-relevant="additions"></ol>
+          </div>
+        </div>
+
+        <div class="final-output" id="final-output" hidden aria-live="polite">
+          <p class="eyebrow">Final output</p>
+          <h3 id="final-title">Objective complete</h3>
+          <p id="final-text"></p>
+        </div>
+      </div>
     </section>
 
     <section class="features" aria-label="Package features">
-      <article>
-        <p class="number">01</p>
-        <h2>Supervisor loop</h2>
-        <p>Route work between registered agents until completion while preserving a predictable execution boundary.</p>
-      </article>
-      <article>
-        <p class="number">02</p>
-        <h2>Shared context</h2>
-        <p>Carry messages, artifacts, scratch data, and tool state across every step with serializable context objects.</p>
-      </article>
-      <article>
-        <p class="number">03</p>
-        <h2>Pluggable memory</h2>
-        <p>Start in memory, persist to SQLite, or implement the small memory protocol for your own infrastructure.</p>
-      </article>
+      <article><p class="number">01</p><h2>Supervisor shell</h2><p>Route registered agents behind one predictable <code>run_step</code> boundary.</p></article>
+      <article><p class="number">02</p><h2>Shared context</h2><p>Carry messages, artifacts, scratch data, and tool state through JSON-compatible context.</p></article>
+      <article><p class="number">03</p><h2>Pluggable memory</h2><p>Start in memory, persist to SQLite, or implement the small memory protocol.</p></article>
     </section>
 
     <section class="backends" id="backends">
       <div>
         <p class="eyebrow">Bring your own model or framework</p>
         <h2>Install only what you use.</h2>
-        <p class="section-copy">OpenAI and Anthropic are ready-to-run reference backends. Framework adapters are explicit templates for connecting your own graph, crew, or Strands agent.</p>
+        <p class="section-copy">OpenAI and Anthropic are ready-to-run reference backends. Framework adapters are truthful templates for connecting your graph, crew, or Strands agent.</p>
       </div>
       <div class="backend-grid">
-        <div><code>agent-harness-kit[anthropic]</code><small>Ready · Claude backend</small></div>
-        <div><code>agent-harness-kit[openai]</code><small>Ready · OpenAI backend</small></div>
-        <div><code>agent-harness-kit[langgraph]</code><small>Adapter template · complete run_step for your graph</small></div>
-        <div><code>agent-harness-kit[crewai]</code><small>Adapter template · complete run_step for your crew</small></div>
-        <div><code>agent-harness-kit[strands]</code><small>Adapter template · complete run_step for your agent</small></div>
-        <div><code>agent-harness-kit[all]</code><small>All optional SDKs, including adapter templates</small></div>
+        <div><code>agent-harness-kit[anthropic]</code><small><span class="ready"></span> Ready · Claude backend</small></div>
+        <div><code>agent-harness-kit[openai]</code><small><span class="ready"></span> Ready · OpenAI backend</small></div>
+        <div><code>agent-harness-kit[langgraph]</code><small><span class="template"></span> Template · implement run_step</small></div>
+        <div><code>agent-harness-kit[crewai]</code><small><span class="template"></span> Template · implement run_step</small></div>
+        <div><code>agent-harness-kit[strands]</code><small><span class="template"></span> Template · implement run_step</small></div>
+        <div><code>agent-harness-kit[all]</code><small>All optional SDKs, including template adapters</small></div>
       </div>
     </section>
 
@@ -92,22 +235,13 @@ result = loop.run_supervised(
     input="Give me a two-sentence overview.",
     session_id="demo",
 )</code></pre>
-      <p class="requirement">Install <code>agent-harness-kit[openai]</code> and set <code>OPENAI_API_KEY</code> before running.</p>
+      <p class="requirement">Install <code>agent-harness-kit[openai]</code> and set <code>OPENAI_API_KEY</code> before running this real SDK example.</p>
     </section>
   </main>
 
   <footer>
-    <p>Built by <a href="https://github.com/kanizmadix">Kanishk S</a>.</p>
+    <p>Built by <a href="https://github.com/kanizmadix">Kanishk S</a>. Demo runs locally in your browser.</p>
     <div><a href="https://github.com/kanizmadix/agent-harness-kit">Repository</a><a href="https://github.com/kanizmadix/agent-harness-kit/issues">Issues</a><a href="https://pypi.org/project/agent-harness-kit/">PyPI</a></div>
   </footer>
-
-  <script>
-    const button = document.querySelector('[data-copy]');
-    button.addEventListener('click', async () => {
-      await navigator.clipboard.writeText(button.dataset.copy);
-      button.textContent = 'Copied';
-      window.setTimeout(() => { button.textContent = 'Copy'; }, 1600);
-    });
-  </script>
 </body>
 </html>
